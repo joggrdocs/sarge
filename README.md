@@ -23,15 +23,36 @@ yarn add sarge-cli
 
 ## Usage
 
+This is a simple example of how to use `sarge` to build a CLI tool, that includes:
+
+* Pre-configured authentication using a custom provider.
+* Auto-loading of commands from a directory.
+* Accessing the `ProgramContext` object in a command action.
+
 **`src/main.ts`**
 ```typescript
 import sarge from 'sarge-cli';
+
+import { customProvider } from './auth-provider';
 
 const program = sarge({
   name: 'my-cli',
   version: '1.0.0',
   description: 'My awesome CLI tool',
+  auth: {
+    strategy: 'web',
+    provider: customProvider,
+    url: 'https://example.com/auth',
+  },
   autoload: true,
+  configs: [
+    '.myclirc',
+    '.myclirc.json',
+    '.myclirc.yaml',
+    'my-cli.config.js',
+    'my-cli.config.ts',
+    'random-my-cli.json',
+  ]
 });
 
 program.parse(process.argv);
@@ -51,8 +72,10 @@ export default defineCommand({
       description: 'Your name',
     },
   ],
-  action: ({ options }) => {
-    console.log(`Hello, ${options.name || 'world'}!`);
+  action: (ctx, { options }) => {
+    ctx.loader.start('Loading...');
+    ctx.console.log(`Hello, ${options.name || 'world'}!`);
+    ctx.loader.success('You said hello!');
   },
 });
 ```

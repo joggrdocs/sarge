@@ -32,6 +32,9 @@ This is a simple example of how to use `sarge` to build a CLI tool, that include
 **`src/main.ts`**
 ```typescript
 import sarge from 'sarge-cli';
+import pluginRequest from '@sarge-cli/plugin-request';
+import pluginAuth from '@sarge-cli/plugin-auth';
+import pluginConfig from '@sarge-cli/plugin-config';
 
 import { customProvider } from './auth-provider';
 
@@ -39,22 +42,32 @@ const program = sarge({
   name: 'my-cli',
   version: '1.0.0',
   description: 'My awesome CLI tool',
-  auth: {
-    strategy: 'web',
-    provider: customProvider,
-    url: 'https://example.com/auth',
-  },
+  
+  // Auto-load commands from the `commands` directory OR specify a custom directory '/my-commands'
   autoload: true,
-  configs: [
-    '.myclirc',
-    '.myclirc.json',
-    '.myclirc.yaml',
-    'my-cli.config.js',
-    'my-cli.config.ts',
-    'random-my-cli.json',
-  ]
+
+  // Register plugins to extend the CLI functionality 
+  // and add custom implementations if needed
+  plugins: [
+    pluginAuth(),
+    pluginRequest(),
+    pluginConfig({
+      files: [
+        '.myclirc',
+        '.myclirc.json',
+        '.myclirc.yaml',
+        'my-cli.config.js',
+        'my-cli.config.ts',
+        'random-my-cli.json',
+      ],
+    })
+  ],
 });
 
+// returns a standard Commander object that you can use with the underlying Commander API
+program.help('my-cli [command] [options]');
+
+// parse the command-line arguments (the same as `commander.parse`)
 program.parse(process.argv);
 ```
 
@@ -72,9 +85,16 @@ export default defineCommand({
       description: 'Your name',
     },
   ],
-  action: (ctx, { options }) => {
+  preAction: async (ctx) => {
+    await ctx.auth.check();
+  },
+  action: async (ctx, { options }) => {
     ctx.loader.start('Loading...');
-    ctx.console.log(`Hello, ${options.name || 'world'}!`);
+
+    const user = await ctx.request.api.post('/users/search', { name: options.name });
+    const other = await ctx.request.other.get('/other');
+
+    ctx.console.log(`Hello, ${user.fullName || 'world'}!`);
     ctx.loader.success('You said hello!');
   },
 });

@@ -1,0 +1,32 @@
+name: 'ci: Code Standards & Testing'
+
+on:
+  pull_request: {}
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    name: Continuous Integration Suite
+    timeout-minutes: 15
+    steps:
+      - name: '⬇️ Checkout Code'
+        uses: actions/checkout@v4
+      - name: '💚 Setup Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+      - name: '📦 Install Packages'
+        run: yarn install
+      # - name: '🕵️ Code Linting & Formatting'
+      #   run: yarn turbo analyze:ci
+      # - name: '🟦 Typecheck'
+      #   run: yarn turbo analyze:types
+      # - name: '⚡️ Test'
+      #   run: yarn turbo test:ci

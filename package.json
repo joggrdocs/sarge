@@ -1,0 +1,14 @@
+{
+  "name": "sarge",
+  "description": "Framework for building elegant command-line tools with Node.js &amp; TypeScript.",
+  "scripts": {
+    "analyze": "biome check",
+    "analyze:ci": "biome ci --diagnostic-level=error",
+    "fix": "biome check --fix"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "turbo": "^2.3.3"
+  },
+  "packageManager": "yarn@4.5.3"
+}
